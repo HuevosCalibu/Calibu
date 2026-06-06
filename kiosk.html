@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Calibú — Marcaje</title>
+  <link rel="icon" type="image/png" href="./public/favicon.png">
+  <style>
+    :root {
+      --rojo: #D42B00; --rojo-dark: #A82200;
+      --verde: #1F8A4C; --azul: #1E5FB6;
+      --bg: #F5F3EF; --card: #fff;
+      --text: #1F1A14; --muted: #6E6657;
+      --border: #E2DFD8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* Pantalla completa centrada */
+    .screen { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .screen.active { display: flex; }
+
+    /* Header marca */
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .brand-mark { width: 48px; height: 48px; border-radius: 12px; background: var(--rojo); display: grid; place-items: center; }
+    .brand-mark img { width: 32px; height: 32px; object-fit: contain; filter: brightness(10); }
+    .brand-name { font-size: 24px; font-weight: 800; color: var(--rojo); }
+
+    /* Reloj */
+    #reloj { font-size: 56px; font-weight: 800; letter-spacing: -2px; color: var(--text); text-align: center; margin-bottom: 8px; }
+    #fecha { font-size: 16px; color: var(--muted); text-align: center; margin-bottom: 32px; text-transform: capitalize; }
+
+    /* Grid de trabajadoras */
+    .worker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; width: 100%; max-width: 640px; }
+    .worker-btn {
+      background: var(--card); border: 2px solid var(--border); border-radius: 16px;
+      padding: 20px 12px; text-align: center; cursor: pointer;
+      transition: all .15s; user-select: none; -webkit-user-select: none;
+    }
+    .worker-btn:hover, .worker-btn:active { border-color: var(--rojo); background: #fff5f3; transform: scale(0.97); }
+    .worker-btn .avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--rojo); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 700; margin: 0 auto 10px; }
+    .worker-btn .name { font-size: 14px; font-weight: 600; }
+    .worker-btn .cargo { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .worker-btn.no-pin { opacity: .45; cursor: not-allowed; }
+    .worker-btn .estado { font-size: 11px; margin-top: 6px; font-weight: 600; }
+    .worker-btn .estado.entrada { color: var(--verde); }
+    .worker-btn .estado.salida  { color: var(--azul); }
+
+    /* Pantalla PIN */
+    .pin-card { background: var(--card); border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,.12); text-align: center; }
+    .pin-card h2 { font-size: 20px; margin-bottom: 4px; }
+    .pin-card .sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .pin-display { display: flex; gap: 12px; justify-content: center; margin-bottom: 28px; }
+    .pin-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); background: transparent; transition: background .1s; }
+    .pin-dot.filled { background: var(--rojo); border-color: var(--rojo); }
+
+    /* Teclado numérico */
+    .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .numpad-btn {
+      height: 64px; border-radius: 14px; border: none;
+      background: var(--bg); font-size: 22px; font-weight: 600; cursor: pointer;
+      transition: background .1s, transform .05s; -webkit-tap-highlight-color: transparent;
+    }
+    .numpad-btn:active { background: #e8e4de; transform: scale(.95); }
+    .numpad-btn.del { font-size: 18px; color: var(--muted); }
+    .numpad-btn.ok  { background: var(--rojo); color: #fff; }
+    .numpad-btn.ok:active { background: var(--rojo-dark); }
+    .btn-back { background: none; border: none; color: var(--muted); font-size: 14px; margin-top: 20px; cursor: pointer; padding: 8px 16px; }
+
+    /* Pantalla resultado */
+    .result-card { background: var(--card); border-radius: 24px; padding: 40px 32px; width: 100%; max-width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,.12); text-align: center; }
+    .result-icon { font-size: 64px; margin-bottom: 16px; }
+    .result-nombre { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .result-hora { font-size: 48px; font-weight: 800; color: var(--rojo); letter-spacing: -2px; margin-bottom: 8px; }
+    .result-tipo { font-size: 16px; color: var(--muted); margin-bottom: 8px; }
+    .result-error { font-size: 16px; color: #C42525; margin-bottom: 16px; }
+    .btn-volver { display: inline-block; padding: 14px 32px; background: var(--rojo); color: #fff; border: none; border-radius: 999px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+
+    /* Botón tipo */
+    .tipo-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    .tipo-btn { padding: 16px; border-radius: 14px; border: 2px solid var(--border); background: var(--bg); font-size: 16px; font-weight: 600; cursor: pointer; transition: all .15s; }
+    .tipo-btn.entrada { border-color: var(--verde); color: var(--verde); }
+    .tipo-btn.salida  { border-color: var(--azul);  color: var(--azul); }
+    .tipo-btn.entrada.active { background: var(--verde); color: #fff; }
+    .tipo-btn.salida.active  { background: var(--azul);  color: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- ── Pantalla: Lista de trabajadoras ──────────────────────────── -->
+<div class="screen active" id="screen-lista">
+  <div class="brand">
+    <div class="brand-mark"><img src="./public/logo-mark.png" alt="Calibú" onerror="this.parentElement.innerHTML='🐔'"></div>
+    <div class="brand-name">Calibú</div>
+  </div>
+  <div id="reloj">00:00</div>
+  <div id="fecha">Cargando...</div>
+  <div class="worker-grid" id="worker-grid">
+    <div style="text-align:center;color:var(--muted);grid-column:1/-1;padding:20px">Cargando trabajadoras…</div>
+  </div>
+</div>
+
+<!-- ── Pantalla: Seleccionar tipo + ingresar PIN ─────────────────── -->
+<div class="screen" id="screen-pin">
+  <div class="pin-card">
+    <h2 id="pin-nombre">Trabajadora</h2>
+    <div class="sub">Selecciona y luego ingresa tu PIN</div>
+
+    <div class="tipo-btns">
+      <button class="tipo-btn entrada active" id="btn-tipo-entrada" onclick="selTipo('entrada')">▶ Entrada</button>
+      <button class="tipo-btn salida"  id="btn-tipo-salida"  onclick="selTipo('salida')">◀ Salida</button>
+    </div>
+
+    <div class="pin-display" id="pin-display" style="margin-top:24px">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+
+    <div class="numpad">
+      <button class="numpad-btn" onclick="addDigit('1')">1</button>
+      <button class="numpad-btn" onclick="addDigit('2')">2</button>
+      <button class="numpad-btn" onclick="addDigit('3')">3</button>
+      <button class="numpad-btn" onclick="addDigit('4')">4</button>
+      <button class="numpad-btn" onclick="addDigit('5')">5</button>
+      <button class="numpad-btn" onclick="addDigit('6')">6</button>
+      <button class="numpad-btn" onclick="addDigit('7')">7</button>
+      <button class="numpad-btn" onclick="addDigit('8')">8</button>
+      <button class="numpad-btn" onclick="addDigit('9')">9</button>
+      <button class="numpad-btn del" onclick="delDigit()">⌫</button>
+      <button class="numpad-btn" onclick="addDigit('0')">0</button>
+      <button class="numpad-btn ok" id="btn-ok" onclick="confirmar()" disabled>OK</button>
+    </div>
+    <button class="btn-back" onclick="volver()">← Volver</button>
+  </div>
+</div>
+
+<!-- ── Pantalla: Resultado ───────────────────────────────────────── -->
+<div class="screen" id="screen-result">
+  <div class="result-card" id="result-card">
+    <div class="result-icon" id="result-icon">✅</div>
+    <div class="result-nombre" id="result-nombre"></div>
+    <div class="result-hora" id="result-hora"></div>
+    <div class="result-tipo" id="result-tipo"></div>
+    <div class="result-error" id="result-error" style="display:none"></div>
+    <button class="btn-volver" onclick="volver()">Listo</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var SUPABASE_URL  = 'https://ierotxehalveoeylcxvn.supabase.co';
+  var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllcm90eGVoYWx2ZW9leWxjeHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NjAwMDgsImV4cCI6MjA5NTQzNjAwOH0.JQW_2p3gk9Z6hIP2hz4OMSYdSn7YDbcJUvDd0uhSeZY';
+  var sb;
+
+  // Cargar Supabase UMD
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js';
+  s.onload = function() {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    cargarTrabajadoras();
+  };
+  s.onerror = function() {
+    document.getElementById('worker-grid').innerHTML =
+      '<div style="color:#C42525;text-align:center;grid-column:1/-1">⚠️ Sin conexión. Verifica el WiFi.</div>';
+  };
+  document.head.appendChild(s);
+
+  // ── Reloj ────────────────────────────────────────────────────────
+  function tick() {
+    var now = new Date();
+    document.getElementById('reloj').textContent =
+      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    var dias   = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    var meses  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    document.getElementById('fecha').textContent =
+      dias[now.getDay()] + ' ' + now.getDate() + ' de ' + meses[now.getMonth()] + ' ' + now.getFullYear();
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ── Cargar trabajadoras ──────────────────────────────────────────
+  var workers = [];
+  async function cargarTrabajadoras() {
+    var { data } = await sb.from('v_empleados_kiosk').select('*');
+    workers = data || [];
+    var grid = document.getElementById('worker-grid');
+    if (!workers.length) {
+      grid.innerHTML = '<div style="text-align:center;color:var(--muted);grid-column:1/-1;padding:20px">Sin trabajadoras activas configuradas</div>';
+      return;
+    }
+    // Cargar estado de cada trabajadora
+    var estados = {};
+    await Promise.all(workers.map(async function(w) {
+      var { data: est } = await sb.rpc('asistencia_hoy_kiosk', { p_empleado_id: w.id });
+      estados[w.id] = est || { entrada: null, salida: null };
+    }));
+
+    grid.innerHTML = workers.map(function(w) {
+      var ini = (w.nombre || '?').split(/\s+/).map(function(p){ return p[0]; }).slice(0,2).join('').toUpperCase();
+      var est = estados[w.id] || {};
+      var estadoHtml = '';
+      if (est.salida)  estadoHtml = '<div class="estado salida">Salida: ' + est.salida + '</div>';
+      else if (est.entrada) estadoHtml = '<div class="estado entrada">Entrada: ' + est.entrada + '</div>';
+      var nopin = !w.tiene_pin ? ' no-pin' : '';
+      var title = !w.tiene_pin ? 'title="Sin PIN configurado"' : '';
+      return '<div class="worker-btn' + nopin + '" ' + title + ' onclick="selWorker(\'' + w.id + '\')" data-id="' + w.id + '">' +
+        '<div class="avatar">' + ini + '</div>' +
+        '<div class="name">' + (w.nombre || '—') + '</div>' +
+        '<div class="cargo">' + (w.cargo || '') + '</div>' +
+        estadoHtml +
+      '</div>';
+    }).join('');
+  }
+
+  // ── Estado actual ────────────────────────────────────────────────
+  var selId   = null;
+  var selNom  = '';
+  var pinBuf  = '';
+  var tipoSel = 'entrada';
+
+  window.selWorker = function(id) {
+    var w = workers.find(function(x){ return x.id === id; });
+    if (!w || !w.tiene_pin) return;
+    selId  = id; selNom = w.nombre; pinBuf = '';
+    document.getElementById('pin-nombre').textContent = w.nombre;
+    actualizarDots();
+    show('screen-pin');
+  };
+
+  window.selTipo = function(t) {
+    tipoSel = t;
+    document.getElementById('btn-tipo-entrada').classList.toggle('active', t === 'entrada');
+    document.getElementById('btn-tipo-salida').classList.toggle('active',  t === 'salida');
+  };
+
+  window.addDigit = function(d) {
+    if (pinBuf.length >= 4) return;
+    pinBuf += d;
+    actualizarDots();
+    if (pinBuf.length === 4) {
+      document.getElementById('btn-ok').disabled = false;
+      document.getElementById('btn-ok').style.opacity = '1';
+    }
+  };
+  window.delDigit = function() {
+    pinBuf = pinBuf.slice(0,-1);
+    document.getElementById('btn-ok').disabled = true;
+    actualizarDots();
+  };
+  function actualizarDots() {
+    for (var i=0;i<4;i++) {
+      document.getElementById('d'+i).classList.toggle('filled', i < pinBuf.length);
+    }
+  }
+
+  window.confirmar = async function() {
+    if (pinBuf.length < 4) return;
+    document.getElementById('btn-ok').disabled = true;
+    document.getElementById('btn-ok').textContent = '...';
+    var { data, error } = await sb.rpc('marcar_kiosk', {
+      p_empleado_id: selId, p_pin: pinBuf, p_tipo: tipoSel
+    });
+    document.getElementById('btn-ok').textContent = 'OK';
+
+    show('screen-result');
+    if (data && data.ok) {
+      document.getElementById('result-icon').textContent  = tipoSel === 'entrada' ? '✅' : '👋';
+      document.getElementById('result-nombre').textContent = data.nombre;
+      document.getElementById('result-hora').textContent   = data.hora;
+      document.getElementById('result-tipo').textContent   = tipoSel === 'entrada' ? 'Entrada registrada' : 'Salida registrada';
+      document.getElementById('result-error').style.display = 'none';
+    } else {
+      document.getElementById('result-icon').textContent   = '❌';
+      document.getElementById('result-nombre').textContent = 'PIN incorrecto';
+      document.getElementById('result-hora').textContent   = '';
+      document.getElementById('result-tipo').textContent   = '';
+      document.getElementById('result-error').textContent  = 'Verifica tu PIN e intenta de nuevo';
+      document.getElementById('result-error').style.display = 'block';
+    }
+    // Volver automáticamente en 4 segundos
+    setTimeout(function() { volver(); }, 4000);
+  };
+
+  window.volver = function() {
+    pinBuf = ''; selId = null;
+    actualizarDots();
+    document.getElementById('btn-ok').disabled = true;
+    show('screen-lista');
+    cargarTrabajadoras(); // refrescar estados
+  };
+
+  function show(id) {
+    ['screen-lista','screen-pin','screen-result'].forEach(function(s){
+      document.getElementById(s).classList.toggle('active', s === id);
+    });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Variables de entorno — NUNCA subir keys a GitHub
+.env
+.env.local
+.env.*.local
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Node (por si acaso)
+node_modules/

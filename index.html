@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calibú — Iniciar sesión</title>
+  <link rel="icon" type="image/png" href="./public/favicon.png">
+  <link rel="stylesheet" href="./src/styles/app.css">
+</head>
+<body>
+  <div class="login-shell">
+    <form class="login-card" id="login-form" onsubmit="return false" autocomplete="on">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1>Calibú ERP</h1>
+          <div class="sub">Iniciar sesión</div>
+        </div>
+      </div>
+      <div class="form-grid" style="grid-template-columns: 1fr">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required autocomplete="username" placeholder="tu@correo.cl">
+        </div>
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password" minlength="6">
+        </div>
+      </div>
+      <div id="login-error" class="field error" style="display:none; margin-top:8px"></div>
+      <div class="form-actions" style="margin-top: 24px">
+        <button type="button" class="btn" id="btn-login" style="width: 100%; justify-content: center" disabled>
+          Iniciando...
+        </button>
+      </div>
+      <p style="margin-top:24px; font-size: var(--fs-xs); color: var(--text-muted); text-align:center">
+        ¿Problemas para entrar? Contacta al administrador.
+      </p>
+    </form>
+    <div id="boot-status" style="margin-top: 16px; max-width: 420px; padding: 10px 14px; border-radius: 8px; font-size: 12px; text-align: center; color: #6E6657; background: #F4F2EE;">
+      Iniciando…
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var SUPABASE_URL  = 'https://ierotxehalveoeylcxvn.supabase.co';
+    var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllcm90eGVoYWx2ZW9leWxjeHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NjAwMDgsImV4cCI6MjA5NTQzNjAwOH0.JQW_2p3gk9Z6hIP2hz4OMSYdSn7YDbcJUvDd0uhSeZY';
+    var CDNS = [
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js',
+      'https://unpkg.com/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.45.0/supabase.min.js'
+    ];
+    var statusEl = document.getElementById('boot-status');
+    function setStatus(txt, color) {
+      statusEl.textContent = txt;
+      statusEl.style.background = color === 'ok' ? '#E4F5EB' : color === 'err' ? '#FCE5E5' : color === 'warn' ? '#FFF3DC' : '#F4F2EE';
+      statusEl.style.color = color === 'err' ? '#C42525' : color === 'ok' ? '#1F8A4C' : color === 'warn' ? '#C97A00' : '#6E6657';
+    }
+    function cargarScript(url, timeoutMs) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        var done = false;
+        var t = setTimeout(function() { if (!done) { done = true; reject(new Error('Timeout ' + url)); } }, timeoutMs || 8000);
+        s.onload = function() { if (!done) { done = true; clearTimeout(t); resolve(); } };
+        s.onerror = function() { if (!done) { done = true; clearTimeout(t); reject(new Error('Error red ' + url)); } };
+        document.head.appendChild(s);
+      });
+    }
+    function cargarSupabase(i) {
+      i = i || 0;
+      if (i >= CDNS.length) return Promise.resolve(false);
+      setStatus('Cargando Supabase desde CDN ' + (i+1) + '/' + CDNS.length + '...', 'info');
+      return cargarScript(CDNS[i]).then(function() {
+        if (window.supabase && window.supabase.createClient) {
+          console.log('[boot] Supabase OK desde:', CDNS[i]);
+          return true;
+        }
+        return cargarSupabase(i+1);
+      }).catch(function(e) {
+        console.warn('[boot] CDN falló:', CDNS[i], e.message);
+        return cargarSupabase(i+1);
+      });
+    }
+
+    setStatus('Iniciando carga...', 'info');
+
+    cargarSupabase().then(function(ok) {
+      if (!ok) {
+        setStatus('⚠️ Ningún CDN respondió. Posible bloqueo (ad-blocker/firewall). Revisa F12 → Consola.', 'err');
+        return;
+      }
+      var client;
+      try {
+        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+          auth: { persistSession: true, autoRefreshToken: true }
+        });
+        window.__CALIBU_SUPABASE = client;
+        window.__CALIBU_CONFIG__ = { SUPABASE_URL: SUPABASE_URL, SUPABASE_ANON: SUPABASE_ANON };
+      } catch (e) {
+        setStatus('⚠️ Error creando cliente: ' + e.message, 'err');
+        return;
+      }
+      var btn = document.getElementById('btn-login');
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+      setStatus('✓ Listo para entrar', 'ok');
+
+      client.auth.getSession().then(function(r) {
+        if (r && r.data && r.data.session) {
+          setStatus('Sesión activa, redirigiendo...', 'ok');
+          location.href = './app.html';
+        }
+      }).catch(function(){});
+
+      var err = document.getElementById('login-error');
+      var emailInput = document.getElementById('email');
+      var passInput  = document.getElementById('password');
+
+      function intentarLogin() {
+        err.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Entrando...';
+        var email = (emailInput.value || '').trim();
+        var password = passInput.value || '';
+        if (!email || !password) {
+          err.textContent = 'Email y contraseña son obligatorios';
+          err.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+          return;
+        }
+        client.auth.signInWithPassword({ email: email, password: password }).then(function(r) {
+          if (r.error) throw r.error;
+          setStatus('✓ Bienvenido, entrando...', 'ok');
+          location.href = './app.html';
+        }).catch(function(e) {
+          console.error('[login] error:', e);
+          err.textContent = (e.message === 'Invalid login credentials')
+            ? 'Email o contraseña incorrectos'
+            : (e.message || 'No se pudo iniciar sesión');
+          err.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Entrar';
+        });
+      }
+      btn.addEventListener('click', intentarLogin);
+      emailInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); intentarLogin(); } });
+      passInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); intentarLogin(); } });
+    });
+  })();
+  </script>
+</body>
+</html>

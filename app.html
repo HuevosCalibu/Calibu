@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calibú ERP</title>
+  <link rel="icon" type="image/png" href="./public/favicon.png">
+  <link rel="stylesheet" href="./src/styles/app.css">
+  <script>
+    window.__CALIBU_CONFIG__ = {
+      SUPABASE_URL:  'https://ierotxehalveoeylcxvn.supabase.co',
+      SUPABASE_ANON: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imllcm90eGVoYWx2ZW9leWxjeHZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NjAwMDgsImV4cCI6MjA5NTQzNjAwOH0.JQW_2p3gk9Z6hIP2hz4OMSYdSn7YDbcJUvDd0uhSeZY'
+    };
+  </script>
+</head>
+<body>
+  <!-- Hamburger toggle (CSS-only drawer en móvil) -->
+  <input type="checkbox" id="sidebar-toggle" hidden aria-hidden="true">
+
+  <div class="app" id="app-root">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div class="brand-name">Calibú</div>
+      </div>
+      <nav class="nav" id="nav-admin" hidden>
+        <div class="nav-section">Operación</div>
+        <a href="#dashboard"     data-route="dashboard">📊 Dashboard</a>
+        <a href="#produccion"    data-route="produccion">🥚 Producción</a>
+        <a href="#lotes"         data-route="lotes">🐔 Lotes y Galpones</a>
+        <a href="#ventas"        data-route="ventas">💰 Ventas</a>
+        <a href="#clientes"      data-route="clientes">👥 Clientes</a>
+        <a href="#suscripciones" data-route="suscripciones">🔁 Suscripciones</a>
+        <a href="#checklist"     data-route="checklist">✅ Checklist operativo</a>
+        <div class="nav-section">RRHH</div>
+        <a href="#empleados"     data-route="empleados">👤 Empleados</a>
+        <a href="#vacaciones"    data-route="vacaciones">🏖️ Vacaciones</a>
+        <a href="#anticipos"     data-route="anticipos">💵 Anticipos</a>
+        <a href="#liquidaciones" data-route="liquidaciones">📋 Liquidaciones</a>
+        <a href="#finiquitos"    data-route="finiquitos">📑 Finiquitos</a>
+        <a href="#registro-asistencia" data-route="registro-asistencia">📋 Registro asistencia</a>
+        <div class="nav-section">Gestión</div>
+        <a href="#compras"  data-route="compras">🧾 Compras y gastos</a>
+        <a href="#stock"    data-route="stock">📦 Stock de insumos</a>
+        <a href="#finanzas" data-route="finanzas">📈 Finanzas (P&L)</a>
+        <a href="#costos"   data-route="costos">💰 Costos y Márgenes</a>
+        <a href="#guias"    data-route="guias">📋 Guías de Despacho</a>
+      </nav>
+      <nav class="nav" id="nav-trabajador" hidden>
+        <div class="nav-section">Mi día</div>
+        <a href="#checklist-worker" data-route="checklist-worker">✅ Checklist diario</a>
+        <a href="#asistencia"       data-route="asistencia">⏰ Asistencia</a>
+        <a href="#cargar-produccion" data-route="cargar-produccion">🥚 Cargar producción</a>
+        <div class="nav-section">Mi info</div>
+        <a href="#mi-perfil"         data-route="mi-perfil">👤 Mi perfil</a>
+        <a href="#mis-vacaciones"    data-route="mis-vacaciones">🏖️ Mis vacaciones</a>
+        <a href="#mis-anticipos"     data-route="mis-anticipos">💵 Mis anticipos</a>
+        <a href="#mis-liquidaciones" data-route="mis-liquidaciones">📋 Mis liquidaciones</a>
+        <a href="#mis-documentos"    data-route="mis-documentos">📂 Mis documentos</a>
+        <div class="nav-section">Galpón</div>
+        <a href="#produccion"        data-route="produccion">📊 Postura y lotes</a>
+      </nav>
+    </aside>
+
+    <!-- Overlay para cerrar sidebar en móvil al hacer clic fuera -->
+    <label for="sidebar-toggle" class="sidebar-overlay" aria-hidden="true"></label>
+
+    <header class="header">
+      <!-- Hamburger button — visible solo en móvil -->
+      <label for="sidebar-toggle" class="hamburger-btn" aria-label="Abrir menú" title="Menú">☰</label>
+      <div class="page-title" id="page-title">Cargando...</div>
+      <div style="display:flex; align-items:center; gap:12px">
+        <button id="btn-search" class="btn ghost sm" style="padding:6px 12px; font-size:13px; display:flex; align-items:center; gap:6px" title="Buscar (Ctrl+K)">
+          🔍 <span style="opacity:.6" class="hide-mobile">Buscar</span> <span class="kbd hide-mobile">Ctrl+K</span>
+        </button>
+        <button id="btn-notif" class="btn ghost sm" style="position:relative; padding:8px 10px; font-size:18px" title="Notificaciones" hidden>
+          🔔
+          <span id="notif-badge" style="position:absolute; top:-2px; right:-2px; background:var(--calibu-primario); color:#fff; border-radius:999px; font-size:10px; padding:1px 5px; font-weight:700; min-width:16px; display:none"></span>
+        </button>
+        <div class="user-chip" id="user-chip">
+          <span class="avatar" id="user-avatar">?</span>
+          <div class="hide-mobile">
+            <div style="font-weight:600; font-size: var(--fs-sm)" id="user-name">—</div>
+            <span class="role-badge" id="user-role">—</span>
+          </div>
+          <button class="btn ghost sm" id="btn-logout" style="margin-left: 8px">Salir</button>
+        </div>
+      </div>
+    </header>
+    <main class="main">
+      <div class="section" id="view"></div>
+    </main>
+  </div>
+
+  <div id="global-search-overlay">
+    <div class="gs-box">
+      <input id="gs-input" type="text" placeholder="Buscar módulo… (Esc para cerrar)" autocomplete="off" />
+      <div class="gs-results" id="gs-results"></div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var SUPABASE_CDNS = [
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js',
+      'https://unpkg.com/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.45.0/supabase.min.js'
+    ];
+    var CHART_CDNS = [
+      'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+      'https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'
+    ];
+    function cargar(url, timeout) {
+      return new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = url; s.async = true;
+        var done = false;
+        var t = setTimeout(function() { if (!done) { done = true; reject(new Error('timeout')); } }, timeout || 8000);
+        s.onload = function() { if (!done) { done = true; clearTimeout(t); resolve(); } };
+        s.onerror = function() { if (!done) { done = true; clearTimeout(t); reject(new Error('error')); } };
+        document.head.appendChild(s);
+      });
+    }
+    function intentar(lista, i, nombre) {
+      i = i || 0;
+      if (i >= lista.length) return Promise.resolve(false);
+      return cargar(lista[i]).then(function() { return true; })
+        .catch(function() { return intentar(lista, i+1, nombre); });
+    }
+    window.__bootListo = intentar(SUPABASE_CDNS, 0, 'Supabase').then(function(okSb) {
+      return intentar(CHART_CDNS, 0, 'Chart.js').then(function(okCh) {
+        if (!okSb) {
+          document.body.innerHTML = '<div style="padding:24px;color:#C42525;font-family:sans-serif">⚠️ No se pudo cargar Supabase. Verifica tu conexión a internet.</div>';
+          return false;
+        }
+        return true;
+      });
+    });
+  })();
+  </script>
+
+  <script type="module">
+    const ok = await window.__bootListo;
+    if (!ok) throw new Error('Supabase no cargó');
+    const { requerirAuth, signOut } = await import('./src/lib/auth.js');
+    const { toast } = await import('./src/lib/ui.js');
+    const { supabase } = await import('./src/lib/supabase.js');
+
+    const $ = (s, c) => (c || document).querySelector(s);
+
+    function escapeHTML(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'": '&#39;'}[c]));
+    }
+
+    const RUTAS = {
+      'dashboard':         { titulo: 'Dashboard',           loader: () => import('./src/modules/dashboard.js') },
+      'empleados':         { titulo: 'Empleados',           loader: () => import('./src/modules/rrhh/empleados.js'),     soloAdmin: true },
+      'vacaciones':        { titulo: 'Vacaciones',          loader: () => import('./src/modules/rrhh/vacaciones.js'),    soloAdmin: true },
+      'anticipos':         { titulo: 'Anticipos',           loader: () => import('./src/modules/rrhh/anticipos.js'),     soloAdmin: true },
+      'liquidaciones':     { titulo: 'Liquidaciones',       loader: () => import('./src/modules/rrhh/liquidaciones.js'), soloAdmin: true },
+      'finiquitos':        { titulo: 'Finiquitos',          loader: () => import('./src/modules/rrhh/finiquitos.js'),    soloAdmin: true },
+      'registro-asistencia': { titulo: 'Registro de asistencia', loader: () => import('./src/modules/rrhh/asistencia.js'), soloAdmin: true },
+      'produccion':        { titulo: 'Producción',          loader: () => import('./src/modules/produccion/index.js') },
+      'ventas':            { titulo: 'Ventas',              loader: () => import('./src/modules/ventas/index.js'),       soloAdmin: true },
+      'clientes':          { titulo: 'Clientes',            loader: () => import('./src/modules/ventas/clientes.js'),    soloAdmin: true },
+      'suscripciones':     { titulo: 'Suscripciones',       loader: () => import('./src/modules/suscripciones/index.js'),soloAdmin: true },
+      'compras':           { titulo: 'Compras y gastos',    loader: () => import('./src/modules/compras/index.js'),      soloAdmin: true },
+      'stock':             { titulo: 'Stock de insumos',    loader: () => import('./src/modules/stock/index.js'),        soloAdmin: true },
+      'finanzas':          { titulo: 'Finanzas',            loader: () => import('./src/modules/finanzas/index.js'),     soloAdmin: true },
+      'costos':            { titulo: 'Costos y Márgenes',   loader: () => import('./src/modules/costos/index.js'),       soloAdmin: true },
+      'checklist':         { titulo: 'Checklist operativo', loader: () => import('./src/modules/checklist/index.js'),    soloAdmin: true },
+      'checklist-worker':  { titulo: 'Mi checklist diario', loader: () => import('./src/modules/worker-portal/checklist.js') },
+      'mi-perfil':         { titulo: 'Mi perfil',           loader: () => import('./src/modules/worker-portal/mi-perfil.js') },
+      'asistencia':        { titulo: 'Marcar asistencia',   loader: () => import('./src/modules/worker-portal/asistencia.js') },
+      'mis-vacaciones':    { titulo: 'Mis vacaciones',      loader: () => import('./src/modules/worker-portal/mis-vacaciones.js') },
+      'mis-anticipos':     { titulo: 'Mis anticipos',       loader: () => import('./src/modules/worker-portal/mis-anticipos.js') },
+      'mis-liquidaciones': { titulo: 'Mis liquidaciones',   loader: () => import('./src/modules/worker-portal/mis-liquidaciones.js') },
+      'mis-documentos':    { titulo: 'Mis documentos',      loader: () => import('./src/modules/worker-portal/mis-documentos.js') },
+      'cargar-produccion': { titulo: 'Cargar producción',   loader: () => import('./src/modules/produccion/cargar.js') },
+      'guias':            { titulo: 'Guías de Despacho',  loader: () => import('./src/modules/guias/index.js'),        soloAdmin: true },
+      'lotes':            { titulo: 'Lotes y Galpones',    loader: () => import('./src/modules/lotes/index.js'),        soloAdmin: true }
+    };
+
+    let perfilGlobal = null;
+    let _alertasCache = [];
+
+    async function inicializar() {
+      perfilGlobal = await requerirAuth();
+      if (!perfilGlobal) return;
+      const iniciales = (perfilGlobal.nombre_display || '?').split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
+      $('#user-avatar').textContent = iniciales;
+      $('#user-name').textContent = perfilGlobal.nombre_display;
+      const rolEl = $('#user-role');
+      rolEl.textContent = perfilGlobal.rol;
+      rolEl.classList.toggle('trabajador', perfilGlobal.rol !== 'admin');
+      if (perfilGlobal.rol === 'admin') {
+        $('#nav-admin').hidden = false;
+        $('#btn-notif').hidden = false;
+        cargarNotificaciones();
+        setInterval(cargarNotificaciones, 60000);
+      } else {
+        $('#nav-trabajador').hidden = false;
+      }
+      $('#btn-logout').addEventListener('click', async () => {
+        await signOut();
+        location.href = './index.html';
+      });
+      $('#btn-notif').addEventListener('click', mostrarNotificaciones);
+      window.addEventListener('hashchange', enrutar);
+      // Cerrar sidebar móvil al hacer click en links de nav
+      document.querySelectorAll('.nav a[data-route]').forEach(a => {
+        a.addEventListener('click', () => { $('#sidebar-toggle').checked = false; });
+      });
+      enrutar();
+    }
+
+    async function cargarNotificaciones() {
+      try {
+        const [stock, vacs, anticipos, ventasV] = await Promise.all([
+          supabase.from('v_stock_alertas').select('*').in('semaforo', ['rojo','amarillo']),
+          supabase.from('vacaciones').select('id, empleados:empleado_id(nombre), dias_habiles').eq('estado','solicitada'),
+          supabase.from('anticipos').select('id, monto, empleados:empleado_id(nombre)').eq('descontado', false),
+          supabase.from('ventas').select('id, total, clientes:cliente_id(nombre)').eq('estado_pago','vencido')
+        ]);
+        const alertas = [];
+        (stock.data || []).forEach(s => alertas.push({
+          tipo: s.semaforo === 'rojo' ? 'danger' : 'warn',
+          icon: s.semaforo === 'rojo' ? '🚨' : '⚠️',
+          titulo: (s.semaforo === 'rojo' ? 'Stock crítico: ' : 'Stock bajo: ') + s.nombre,
+          detalle: Number(s.stock_actual).toFixed(0) + ' ' + s.unidad,
+          link: '#stock'
+        }));
+        (vacs.data || []).forEach(v => alertas.push({
+          tipo: 'info', icon: '🏖️',
+          titulo: 'Vacaciones por aprobar',
+          detalle: (v.empleados?.nombre || 'Empleado') + ' · ' + v.dias_habiles + ' días',
+          link: '#vacaciones'
+        }));
+        (anticipos.data || []).slice(0,5).forEach(a => alertas.push({
+          tipo: 'info', icon: '💵',
+          titulo: 'Anticipo pendiente',
+          detalle: (a.empleados?.nombre || 'Empleado') + ' · $' + Math.round(a.monto).toLocaleString('es-CL'),
+          link: '#anticipos'
+        }));
+        (ventasV.data || []).slice(0,5).forEach(v => alertas.push({
+          tipo: 'danger', icon: '💸',
+          titulo: 'Pago vencido',
+          detalle: (v.clientes?.nombre || 'Cliente') + ' · $' + Math.round(v.total).toLocaleString('es-CL'),
+          link: '#ventas'
+        }));
+        _alertasCache = alertas;
+        const badge = $('#notif-badge');
+        if (alertas.length > 0) {
+          badge.style.display = 'inline-block';
+          badge.textContent = alertas.length;
+        } else { badge.style.display = 'none'; }
+      } catch (e) { console.error('Notificaciones:', e); }
+    }
+
+    function mostrarNotificaciones() {
+      const back = document.createElement('div');
+      back.className = 'modal-backdrop';
+      back.innerHTML = `
+        <div class="modal" style="max-width: 480px">
+          <div class="modal-header"><h2>🔔 Notificaciones (${_alertasCache.length})</h2><button class="modal-close">&times;</button></div>
+          ${_alertasCache.length === 0
+            ? '<div class="empty-state" style="padding:24px"><div style="font-size:42px">✅</div><p>Todo en orden, sin alertas</p></div>'
+            : _alertasCache.map(a => `
+              <a href="${a.link}" class="alert-card ${a.tipo}" style="text-decoration:none; color:inherit; margin-bottom:8px" data-close="1">
+                <div class="alert-icon">${a.icon}</div>
+                <div class="alert-text"><strong>${escapeHTML(a.titulo)}</strong><br><small>${escapeHTML(a.detalle)}</small></div>
+              </a>`).join('')
+          }
+        </div>`;
+      document.body.appendChild(back);
+      back.querySelector('.modal-close').addEventListener('click', () => back.remove());
+      back.addEventListener('click', e => { if (e.target === back) back.remove(); });
+      back.querySelectorAll('[data-close]').forEach(a => a.addEventListener('click', () => setTimeout(() => back.remove(), 100)));
+    }
+
+    async function enrutar() {
+      const ruta = (location.hash || '#dashboard').slice(1).split('?')[0];
+      const def = RUTAS[ruta];
+      const view = document.getElementById('view');
+      const titleEl = document.getElementById('page-title');
+
+      // Cerrar sidebar drawer en móvil
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      if (sidebarToggle) sidebarToggle.checked = false;
+
+      // Marcar activo en nav
+      document.querySelectorAll('.nav a[data-route]').forEach(a => {
+        a.classList.toggle('active', a.dataset.route === ruta);
+      });
+
+      if (!def) {
+        view.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">🔍</div><h2>Módulo no encontrado</h2><p><code>${escapeHTML(ruta)}</code></p></div></div>`;
+        if (titleEl) titleEl.textContent = 'No encontrado';
+        return;
+      }
+      if (def.soloAdmin && perfilGlobal?.rol !== 'admin') {
+        view.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">🔒</div><h2>Sin acceso</h2><p>Solo para administradores</p></div></div>`;
+        if (titleEl) titleEl.textContent = 'Sin acceso';
+        return;
+      }
+      if (titleEl) titleEl.textContent = def.titulo;
+
+      // Skeleton loader
+      view.innerHTML = `
+        <div class="skeleton-wrap">
+          <div class="skeleton-bar" style="width:40%;height:28px;margin-bottom:20px;border-radius:6px"></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px">
+            ${[1,2,3,4].map(() => '<div class="skeleton-bar" style="height:80px;border-radius:12px"></div>').join('')}
+          </div>
+          <div class="skeleton-bar" style="height:180px;border-radius:12px"></div>
+        </div>`;
+
+      try {
+        const mod = await def.loader();
+        if (typeof mod.render === 'function') {
+          view.innerHTML = '';
+          await mod.render(view, { perfil: perfilGlobal });
+        } else {
+          view.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">🚧</div><p>Módulo sin función render()</p></div></div>`;
+        }
+      } catch (err) {
+        console.error('[router] Error en módulo', ruta, err);
+        view.innerHTML = `
+          <div class="card">
+            <div class="empty-state">
+              <div class="icon">⚠️</div>
+              <h2>Error al cargar el módulo</h2>
+              <p style="font-family:monospace;font-size:12px;color:var(--danger);word-break:break-all">${escapeHTML(err.message || String(err))}</p>
+              <button class="btn ghost" onclick="location.reload()">Recargar página</button>
+            </div>
+          </div>`;
+      }
+    }
+
+    // ──────────────────────────────────────────────
+    // BÚSQUEDA GLOBAL Ctrl+K
+    // ──────────────────────────────────────────────
+    const PAGINAS_BUSQUEDA = Object.entries(RUTAS).map(([ruta, def]) => ({
+      label: def.titulo, ruta,
+      keywords: [def.titulo, ruta].join(' ').toLowerCase()
+    }));
+
+    function abrirBusqueda() {
+      const overlay = document.getElementById('global-search-overlay');
+      overlay.classList.add('open');
+      const input = document.getElementById('gs-input');
+      input.value = '';
+      input.focus();
+      renderResultados('');
+    }
+
+    function cerrarBusqueda() {
+      document.getElementById('global-search-overlay').classList.remove('open');
+    }
+
+    function renderResultados(q) {
+      const cont = document.getElementById('gs-results');
+      const filtradas = q.length < 1
+        ? PAGINAS_BUSQUEDA.slice(0, 10)
+        : PAGINAS_BUSQUEDA.filter(p => p.keywords.includes(q.toLowerCase())).slice(0, 8);
+      if (!filtradas.length) {
+        cont.innerHTML = '<div class="gs-empty">Sin resultados</div>';
+        return;
+      }
+      cont.innerHTML = filtradas.map(p =>
+        `<a class="gs-item" href="#${p.ruta}">
+          <span class="gs-label">${escapeHTML(p.label)}</span>
+          <span class="gs-kbd">#${p.ruta}</span>
+        </a>`
+      ).join('');
+      cont.querySelectorAll('.gs-item').forEach(a => {
+        a.addEventListener('click', cerrarBusqueda);
+      });
+    }
+
+    document.getElementById('gs-input').addEventListener('input', e => renderResultados(e.target.value));
+    document.getElementById('gs-input').addEventListener('keydown', e => {
+      if (e.key === 'Escape') cerrarBusqueda();
+      if (e.key === 'Enter') {
+        const first = document.querySelector('.gs-item');
+        if (first) { first.click(); }
+      }
+    });
+    document.getElementById('global-search-overlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('global-search-overlay')) cerrarBusqueda();
+    });
+    document.getElementById('btn-search').addEventListener('click', abrirBusqueda);
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); abrirBusqueda(); }
+    });
+
+    await inicializar();
+  </script>
+</body>
+</html>
